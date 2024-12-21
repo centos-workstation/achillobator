@@ -17,7 +17,6 @@ clock-show-weekday=true
 font-antialiasing="rgba"
 font-name="Inter 12"
 document-font-name="Inter 12"
-monospace-font-name="JetBrains Mono 18"
 accent-color="slate"
 
 [org.gnome.desktop.sound]

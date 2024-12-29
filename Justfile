@@ -1,6 +1,6 @@
 export repo_organization := env("GITHUB_REPOSITORY_OWNER", "centos-workstation")
-export image_name := env("IMAGE_NAME", "achillobator")
-export centos_version := env("CENTOS_VERSION", "stream10")
+export image_name := env("IMAGE_NAME", "achillfedora")
+export centos_version := env("CENTOS_VERSION", "41")
 export default_tag := env("DEFAULT_TAG", "latest")
 
 # work around issue with upstream image builder,
@@ -143,7 +143,7 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
       sudo rm -rf "output/${type}" || true
     fi
 
-    args="--type ${type}"
+    args="--rootfs ext4 --type ${type}"
 
     if [[ $target_image == localhost/* ]]; then
       args+=" --local"

@@ -13,8 +13,8 @@ IMAGE_PRETTY_NAME="Achillobator"
 IMAGE_LIKE="rhel fedora"
 HOME_URL="https://projectbluefin.io"
 DOCUMENTATION_URL="https://docs.projectbluefin.io"
-SUPPORT_URL="https://github.com/centos-workstatiom/achillobator/issues/"
-BUG_SUPPORT_URL="https://github.com/centos-workstation/achillobator/issues/"
+SUPPORT_URL="https://github.com/fedora-workstation/achillobator/issues/"
+BUG_SUPPORT_URL="https://github.com/fedora-workstation/achillobator/issues/"
 CODE_NAME="Dromaeosauridae"
 
 IMAGE_INFO="/usr/share/ublue-os/image-info.json"
@@ -27,21 +27,21 @@ cat > $IMAGE_INFO <<EOF
   "image-flavor": "$image_flavor",
   "image-vendor": "$IMAGE_VENDOR",
   "image-tag": "$MAJOR_VERSION",
-  "centos-version": "$MAJOR_VERSION"
+  "fedora-version": "$MAJOR_VERSION"
 }
 EOF
 
 # OS Release File (changed in order with upstream)
 sed -i "s/^NAME=.*/NAME=\"$IMAGE_PRETTY_NAME\"/" /usr/lib/os-release
 sed -i "s|^VERSION_CODENAME=.*|VERSION_CODENAME=\"$CODE_NAME\"|" /usr/lib/os-release
-sed -i "s/^ID=centos/ID=${IMAGE_PRETTY_NAME,}\nID_LIKE=\"${IMAGE_LIKE}\"/" /usr/lib/os-release
+sed -i "s/^ID=fedora/ID=${IMAGE_PRETTY_NAME,}\nID_LIKE=\"${IMAGE_LIKE}\"/" /usr/lib/os-release
 sed -i "s/^VARIANT_ID=.*/VARIANT_ID=$IMAGE_NAME/" /usr/lib/os-release
 sed -i "s/^PRETTY_NAME=.*/PRETTY_NAME=\"${IMAGE_PRETTY_NAME} $MAJOR_VERSION (FROM $OLD_PRETTY_NAME)\"/" /usr/lib/os-release
 sed -i "s|^HOME_URL=.*|HOME_URL=\"$HOME_URL\"|" /usr/lib/os-release
 echo "DOCUMENTATION_URL=\"$DOCUMENTATION_URL\"" | tee -a /usr/lib/os-release
 echo "SUPPORT_URL=\"$SUPPORT_URL\"" | tee -a /usr/lib/os-release
 sed -i "s|^BUG_REPORT_URL=.*|BUG_REPORT_URL=\"$BUG_SUPPORT_URL\"|" /usr/lib/os-release
-sed -i "s|^CPE_NAME=\"cpe:/o:centos:centos|CPE_NAME=\"cpe:/o:universal-blue:${IMAGE_PRETTY_NAME,}|" /usr/lib/os-release
+sed -i "s|^CPE_NAME=\"cpe:/o:fedora:fedora|CPE_NAME=\"cpe:/o:universal-blue:${IMAGE_PRETTY_NAME,}|" /usr/lib/os-release
 echo "DEFAULT_HOSTNAME=\"${IMAGE_PRETTY_NAME,,}\"" | tee -a /usr/lib/os-release
 sed -i "/^REDHAT_BUGZILLA_PRODUCT=/d; /^REDHAT_BUGZILLA_PRODUCT_VERSION=/d; /^REDHAT_SUPPORT_PRODUCT=/d; /^REDHAT_SUPPORT_PRODUCT_VERSION=/d" /usr/lib/os-release
 
@@ -57,57 +57,43 @@ QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\
 /usr/bin/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible --zstd -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 
 # Additions
-dnf -y install \
+dnf -y install --setopt=install_weak_deps=False install \
     distrobox \
+    dnf5-plugins \
     gnome-shell-extension-appindicator \
     gnome-shell-extension-dash-to-dock \
     gnome-tweaks \
     tuned-ppd \
-    systemd-container # uupd depends on machinectl
+    systemd-container \
+    gnome-shell-extension-blur-my-shell \
+    fastfetch \
+    just \
+    tailscale \
+    gcc \
+    git
 
-# Removals
-dnf -y remove \
-    subscription-manager
 
-# Repos 
-dnf -y --enablerepo epel-testing install \
-  gnome-shell-extension-blur-my-shell fastfetch just
 
-dnf config-manager --add-repo https://pkgs.tailscale.com/stable/centos/9/tailscale.repo
-dnf config-manager --set-disabled tailscale-stable
-dnf -y --enablerepo tailscale-stable install \
-  tailscale
 
-dnf config-manager --add-repo "https://repo.charm.sh/yum/"
-dnf config-manager --set-disabled repo.charm.sh_yum_
-echo -e "gpgcheck=1\ngpgkey=https://repo.charm.sh/yum/gpg.key" | tee -a "/etc/yum.repos.d/repo.charm.sh_yum_.repo"
-dnf -y --enablerepo repo.charm.sh_yum_  install \
-  glow
-
-dnf config-manager --add-repo "https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/centos-stream-10/ublue-os-staging-centos-stream-10.repo"
-dnf config-manager --set-disabled copr:copr.fedorainfracloud.org:ublue-os:staging
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:ublue-os:staging install \
+dnf config-manager addrepo --from-repofile="https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-${MAJOR_VERSION}/ublue-os-staging-fedora-${MAJOR_VERSION}.repo"
+dnf -y --enablerepo copr:copr.fedorainfracloud.org:ublue-os:staging --setopt=install_weak_deps=False install \
   -x bluefin-logos \
   gnome-shell-extension-logo-menu \
   uupd \
   bluefin-*
 
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:ublue-os:staging swap centos-logos bluefin-logos
+dnf -y --enablerepo copr:copr.fedorainfracloud.org:ublue-os:staging swap fedora-logos bluefin-logos
 
 rm -f /usr/share/pixmaps/faces/* || echo "Expected directory deletion to fail"
 mv /usr/share/pixmaps/faces/bluefin/* /usr/share/pixmaps/faces
 rm -rf /usr/share/pixmaps/faces/bluefin
 
-dnf config-manager --add-repo "https://copr.fedorainfracloud.org/coprs/che/nerd-fonts/repo/centos-stream-${MAJOR_VERSION}/che-nerd-fonts-centos-stream-${MAJOR_VERSION}.repo"
-dnf config-manager --set-disabled copr:copr.fedorainfracloud.org:che:nerd-fonts
+dnf config-manager addrepo --from-repofile="https://copr.fedorainfracloud.org/coprs/che/nerd-fonts/repo/fedora-${MAJOR_VERSION}/che-nerd-fonts-fedora-${MAJOR_VERSION}.repo"
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:che:nerd-fonts install \
   nerd-fonts
 
-# This is required so homebrew works indefinitely.
-# Symlinking it makes it so whenever another GCC version gets released it will break if the user has updated it without- 
-# the homebrew package getting updated through our builds.
-# We could get some kind of static binary for GCC but this is the cleanest and most tested alternative. This Sucks.
-dnf -y --setopt=install_weak_deps=False install gcc
+#Disable all repos on F41
+
 
 # Homebrew
 touch /.dockerenv

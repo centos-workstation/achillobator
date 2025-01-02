@@ -2,6 +2,11 @@
 name: Build ISO
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ./.github/workflows/build-iso.yml
   workflow_dispatch:
     inputs:
       upload-to-cloudflare:
@@ -40,9 +45,6 @@ jobs:
         id: build
         uses: centos-workstation/bootc-image-builder-action@main
         with:
-          # Due to a bug or misconfiguration, we need to temporarily use our own fork
-          # https://github.com/osbuild/bootc-image-builder/issues/768
-          bootc-image-builder-image: ghcr.io/centos-workstation/bootc-image-builder:latest
           config-file: ./image-builder-iso.config.toml
           image: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
 

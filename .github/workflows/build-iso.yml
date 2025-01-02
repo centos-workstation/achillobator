@@ -3,8 +3,6 @@ name: Build ISO
 
 on:
   pull_request:
-    paths:
-      - ./.github/workflows/build-iso.yml
   workflow_dispatch:
     inputs:
       upload-to-cloudflare:

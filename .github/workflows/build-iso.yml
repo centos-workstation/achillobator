@@ -62,7 +62,7 @@ jobs:
           FLAVOR: ${{ matrix.flavor }}
         run: |
           if [ "${FLAVOR}" != "" ] ; then
-            sed -i "s/bluefin\:lts/bluefin-$FLAVOR\:lts" ./image-builder-iso.config.toml
+            sed -i "s/bluefin\:lts/bluefin-$FLAVOR\:lts/g" ./image-builder-iso.config.toml
           fi
 
       - name: Build ISO
